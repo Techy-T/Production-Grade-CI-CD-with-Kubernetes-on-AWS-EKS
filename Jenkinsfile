@@ -204,7 +204,7 @@ pipeline {
 
         failure {
 
-            echo 'Pipeline failed.'
+            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
