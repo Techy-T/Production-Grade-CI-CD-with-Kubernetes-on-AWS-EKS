@@ -18,13 +18,12 @@ pipeline {
 
         ECR_REPO = 'java-maven-app'
 
-        ECR_REPO_URL = 'YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REPO_URL = '846443066184.dkr.ecr.us-east-1.amazonaws.com'
 
         IMAGE_REPO = "${ECR_REPO_URL}/${ECR_REPO}"
 
         APP_NAME = 'java-maven-app'
 
-        NAMESPACE = 'production'
     }
 
     stages {
@@ -32,7 +31,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/YOUR_USERNAME/YOUR_REPO.git'
+                url: 'https://github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git'
             }
         }
 
@@ -166,7 +165,7 @@ pipeline {
                     git config user.name "Jenkins"
 
                     git remote set-url origin \
-                    https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/YOUR_USERNAME/YOUR_REPO.git
+                    https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
 
                     git add pom.xml
 
