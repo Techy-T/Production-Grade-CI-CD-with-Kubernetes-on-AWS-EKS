@@ -18,7 +18,7 @@ pipeline {
 
         ECR_REPO = 'java-maven-app'
 
-        ECR_REPO_URL = '846443066184.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REPO_URL = 'public.ecr.aws/c3o2d8q6/java-maven-app'
 
         IMAGE_REPO = "${ECR_REPO_URL}/${ECR_REPO}"
 
