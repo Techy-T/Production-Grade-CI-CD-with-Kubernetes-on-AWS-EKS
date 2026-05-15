@@ -86,25 +86,6 @@ pipeline {
             }
         }
 
-        stage('Authenticate to Amazon ECR') {
-
-            environment {
-                AWS_ACCESS_KEY_ID     = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
-            }
-
-            steps {
-
-                echo 'Authenticating to Amazon ECR...'
-
-                sh """
-                aws ecr get-login-password --region ${AWS_REGION} | \
-                docker login \
-                --username AWS \
-                --password-stdin ${ECR_REPO_URL}
-                """
-            }
-        }
 
         stage('Push Docker Image') {
 
@@ -171,7 +152,7 @@ pipeline {
 
                     git commit -m "ci: version bump to ${APP_VERSION}" || true
 
-                    git push origin HEAD:main
+                    git push origin HEAD: main
                     """
                 }
             }
