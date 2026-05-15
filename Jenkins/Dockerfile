@@ -24,6 +24,10 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor \
     apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
+# Add Jenkins user to docker group
+RUN groupadd -g 113 docker || true && \
+    usermod -aG docker jenkins
+
 # Install AWS CLI v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
     -o "awscliv2.zip" && \
