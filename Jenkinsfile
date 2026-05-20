@@ -121,18 +121,14 @@ pipeline {
         stage('Commit Version Update') {
             steps {
                 withCredentials([
-                    usernamePassword(
-                        credentialsId: 'github-credentials',
-                        usernameVariable: 'GIT_USERNAME',
-                        passwordVariable: 'GIT_PASSWORD'
-                    )
+                    string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')
                 ]) {
 
                     sh """
                     git config user.email "jenkins@example.com"
                     git config user.name "Jenkins"
 
-                    git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
+                    git remote set-url origin https://${GITHUB_TOKEN}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
 
                     git add pom.xml
                     git commit -m "ci: version bump to ${APP_VERSION}" || true
