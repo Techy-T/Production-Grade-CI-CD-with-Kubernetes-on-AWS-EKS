@@ -1,4 +1,3 @@
-
 pipeline {
 
     agent any
@@ -16,14 +15,11 @@ pipeline {
 
         AWS_REGION = 'us-east-1'
 
-        ECR_REPO = 'jenkins-repo'
-
-        ECR_REPO_URL = '846443066184.dkr.ecr.us-east-1.amazonaws.com/jenkins-repo'
-
-        IMAGE_REPO = "${ECR_REPO_URL}/${ECR_REPO}"
-
         APP_NAME = 'java-maven-app'
 
+        ECR_REPO_URL = '846443066184.dkr.ecr.us-east-1.amazonaws.com'
+
+        IMAGE_REPO = "${ECR_REPO_URL}/jenkins-repo"
     }
 
     stages {
@@ -37,10 +33,7 @@ pipeline {
 
         stage('Increment Version') {
             steps {
-
                 script {
-
-                    echo 'Incrementing application version...'
 
                     sh """
                     mvn build-helper:parse-version versions:set \
@@ -49,162 +42,123 @@ pipeline {
                     """
 
                     def pom = readFile('pom.xml')
-
                     def matcher = pom =~ '<version>(.+?)</version>'
 
                     env.APP_VERSION = matcher[0][1]
-
                     env.IMAGE_TAG = "${APP_VERSION}-${BUILD_NUMBER}"
 
-                    echo "Application Version: ${APP_VERSION}"
-
-                    echo "Docker Image Tag: ${IMAGE_TAG}"
+                    echo "Version: ${APP_VERSION}"
+                    echo "Image Tag: ${IMAGE_TAG}"
                 }
             }
         }
 
         stage('Build Application') {
-
             steps {
-
-                echo 'Building Maven application...'
-
                 sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
-
             steps {
-
-                echo 'Building Docker image...'
-
                 sh """
-                docker build \
-                -t ${IMAGE_REPO}:${IMAGE_TAG} .
+                docker build -t ${IMAGE_REPO}:${IMAGE_TAG} .
                 """
             }
         }
 
-        stage('Authenticate to Amazon ECR') {
-
+        stage('ECR Login') {
             environment {
-                AWS_ACCESS_KEY_ID     = credentials('jenkins_aws_access_key_id')
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
             }
-
             steps {
-
-                echo 'Authenticating to Amazon ECR...'
-
                 sh """
                 aws ecr get-login-password --region ${AWS_REGION} | \
-                docker login \
-                --username AWS \
-                --password-stdin ${ECR_REPO_URL}
+                docker login --username AWS --password-stdin ${ECR_REPO_URL}
                 """
             }
         }
 
-        stage('Push Docker Image') {
-
+        stage('Push Image') {
             steps {
-
-                echo 'Pushing Docker image to ECR...'
-
                 sh """
                 docker push ${IMAGE_REPO}:${IMAGE_TAG}
                 """
             }
         }
 
-        stage('Deploy to EKS') {
-
+        stage('Configure kubeconfig') {
             environment {
-                AWS_ACCESS_KEY_ID     = credentials('jenkins_aws_access_key_id')
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
             }
-
             steps {
+                sh """
+                aws eks update-kubeconfig \
+                --region ${AWS_REGION} \
+                --name demo-cluster
+                """
+            }
+        }
 
-                echo 'Deploying application to EKS...'
-
+        stage('Deploy to EKS') {
+            steps {
                 sh """
                 export IMAGE_REPO=${IMAGE_REPO}
                 export IMAGE_TAG=${IMAGE_TAG}
                 export APP_NAME=${APP_NAME}
 
-                envsubst < kubernetes/deployment.yaml | kubectl apply -n ${NAMESPACE} -f -
+                envsubst < kubernetes/deployment.yaml | kubectl apply -f -
+                envsubst < kubernetes/service.yaml | kubectl apply -f -
 
-                envsubst < kubernetes/service.yaml | kubectl apply -n ${NAMESPACE} -f -
-                """
-
-                sh """
-                kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE}
+                kubectl rollout status deployment/${APP_NAME}
                 """
             }
         }
 
         stage('Commit Version Update') {
-
             steps {
-
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'github-credentials',
-                        passwordVariable: 'GIT_PASSWORD',
-                        usernameVariable: 'GIT_USERNAME'
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_PASSWORD'
                     )
                 ]) {
 
-                    echo 'Committing updated version to GitHub...'
-
                     sh """
                     git config user.email "jenkins@example.com"
-
                     git config user.name "Jenkins"
 
-                    git remote set-url origin \
-                    https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
+                    git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
 
                     git add pom.xml
-
                     git commit -m "ci: version bump to ${APP_VERSION}" || true
-
                     git push origin HEAD:main
                     """
                 }
             }
         }
 
-        stage('Cleanup Docker Images') {
-
+        stage('Cleanup') {
             steps {
-
-                echo 'Cleaning unused Docker images...'
-
-                sh """
-                docker image prune -af
-                """
+                sh 'docker image prune -af'
             }
         }
     }
 
     post {
-
-        always {
-
-            echo 'Pipeline execution completed.'
-        }
-
         success {
-
-            echo 'Application deployed successfully.'
+            echo "SUCCESS: App deployed to demo-cluster"
         }
 
         failure {
+            echo "FAILED: Check logs"
+        }
 
-            echo 'Pipeline failed.'
+        always {
+            echo "Pipeline completed"
         }
     }
 }
