@@ -15,11 +15,19 @@ pipeline {
 
         AWS_REGION = 'us-east-1'
 
+        AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
+
+        AWS_PAGER = ''
+
         APP_NAME = 'java-maven-app'
 
         ECR_REPO_URL = '846443066184.dkr.ecr.us-east-1.amazonaws.com'
 
         IMAGE_REPO = "${ECR_REPO_URL}/jenkins-repo"
+
+        
     }
 
     stages {
@@ -68,10 +76,6 @@ pipeline {
         }
 
         stage('ECR Login') {
-            environment {
-                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
-            }
             steps {
                 sh """
                 aws ecr get-login-password --region ${AWS_REGION} | \
@@ -89,11 +93,7 @@ pipeline {
         }
 
         stage('Configure kubeconfig') {
-            environment {
-                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
-                AWS_PAGER = ''
-            }
+
             steps {
                 sh """
                 aws eks update-kubeconfig \
@@ -113,7 +113,7 @@ pipeline {
                 envsubst < Kubernetes/deployment.yaml | kubectl apply -f -
                 envsubst < Kubernetes/service.yaml | kubectl apply -f -
 
-                kubectl rollout status deployment/${APP_NAME}
+                kubectl rollout status deployment/${APP_NAME} --namespace default --timeout=120s
                 """
             }
         }
