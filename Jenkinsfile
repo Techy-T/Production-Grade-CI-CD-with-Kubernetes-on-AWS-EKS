@@ -110,8 +110,8 @@ pipeline {
                 export IMAGE_TAG=${IMAGE_TAG}
                 export APP_NAME=${APP_NAME}
 
-                envsubst < kubernetes/deployment.yaml | kubectl apply -f -
-                envsubst < kubernetes/service.yaml | kubectl apply -f -
+                envsubst < Kubernetes/deployment.yaml | kubectl apply -f -
+                envsubst < Kubernetes/service.yaml | kubectl apply -f -
 
                 kubectl rollout status deployment/${APP_NAME}
                 """
