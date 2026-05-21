@@ -131,7 +131,7 @@ pipeline {
                     git remote set-url origin https://${GITHUB_TOKEN}@github.com/Techy-T/Production-Grade-CI-CD-with-Kubernetes-on-AWS-EKS.git
 
                     git add pom.xml
-                    git commit -m "ci: version bump to ${APP_VERSION}" || true
+                    git commit -m "[skip ci] version bump to ${APP_VERSION}" || true
                     git push origin HEAD:main
                     """
                 }

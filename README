@@ -1,0 +1,67 @@
+# 🚀 CI/CD Pipeline: Jenkins + Docker + Kubernetes (EKS) on AWS
+
+This project demonstrates a production-style CI/CD pipeline for a Java Maven application using Jenkins, Docker, Amazon ECR, and Kubernetes on AWS EKS.
+
+---
+
+## 🏗️ Architecture
+
+GitHub → Jenkins → Maven Build → Docker Image → Amazon ECR → Kubernetes (EKS)
+
+---
+
+## 🧰 Tech Stack
+
+- Java (Maven)
+- Jenkins (CI/CD)
+- Docker
+- AWS ECR
+- Kubernetes (EKS)
+- GitHub
+
+---
+
+## ⚙️ Pipeline Flow
+
+1. Checkout code from GitHub  
+2. Increment application version automatically  
+3. Build Java application using Maven  
+4. Build Docker image  
+5. Push image to Amazon ECR  
+6. Deploy to Kubernetes (EKS)  
+7. Update deployment using rolling updates  
+8. Commit version bump back to GitHub  
+
+---
+
+## ☸️ Kubernetes
+
+- Deployment with 2 replicas  
+- Service exposed via LoadBalancer  
+- Rolling updates enabled  
+
+---
+
+## 🔐 Credentials Used
+
+- AWS Access Key + Secret Key  
+- GitHub Personal Access Token  
+- Jenkins credentials store  
+
+---
+
+## 🚀 How to Run
+
+1. Setup Jenkins with Docker, Maven, AWS CLI, kubectl  
+2. Configure AWS EKS cluster (`demo-cluster`)  
+3. Add Jenkins credentials  
+4. Run pipeline from Jenkins  
+5. Application deploys automatically to Kubernetes  
+
+---
+
+## 📌 Status
+
+✔ CI/CD pipeline completed  
+✔ Automated deployment to AWS EKS  
+✔ Docker image pushed to Amazon ECR  
